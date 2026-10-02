@@ -46,7 +46,7 @@ options = vision.HandLandmarkerOptions(
 detector = vision.HandLandmarker.create_from_options(options)
 
 frame_timestamp_ms = 0
-overlay = cv2.imread("../rocket.jpg")
+overlay = cv2.imread("assets/overlay.png")
 
 while cv2.waitKey(1) != 27:
   has_frame, frame = cap.read()
@@ -90,11 +90,8 @@ while cv2.waitKey(1) != 27:
 
       # distance between thumb and index finger tips
       dist = int(np.linalg.norm(p1 - p2))
-      print(x_coordinates[4], y_coordinates[4])
-      print(thumb_point_x, thumb_point_y)
 
       cv2.circle(frame_rgb, (thumb_point_x, thumb_point_y), int(dist/2), (230, 210, 72), 2)
-      # cv2.arrowedLine(frame_rgb, (20, 20), (int(thumb_point_x*100), int(thumb_point_y*100)), (200, 100, 250), 1, cv2.LINE_AA)
 
       text_x = int(min(x_coordinates) * width)
       text_y = int(min(y_coordinates) * height) - 10
@@ -115,8 +112,8 @@ while cv2.waitKey(1) != 27:
 
   # Display
   output = cv2.addWeighted(
-    display_frame, 1.0,
-    overlay, 0.0,
+    display_frame, 0.0,
+    overlay, 1.0,
     0
   )
 
