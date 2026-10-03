@@ -4,6 +4,7 @@ import numpy as np
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+from helper import find_angles
 
 s = 0
 if len(sys.argv) > 1:
@@ -73,47 +74,18 @@ while cv2.waitKey(1) != 27:
         mp_drawing_styles.get_default_hand_connections_style()
       )
 
-      # Bounding-box text position
-      height, width, _ = frame_rgb.shape
-
       x_coordinates = [landmark.x for landmark in hand_landmarks]
       y_coordinates = [landmark.y for landmark in hand_landmarks]
 
-      thumb_point_x = int(x_coordinates[4]*width)
-      thumb_point_y = int(y_coordinates[4]*height)
-
-      index_point_x = int(x_coordinates[8]*width)
-      index_point_y = int(y_coordinates[8]*height)
-
-      p1 = np.array([thumb_point_x, thumb_point_y])
-      p2 = np.array([index_point_x, index_point_y])
-
-      # distance between thumb and index finger tips
-      dist = int(np.linalg.norm(p1 - p2))
-
-      cv2.circle(frame_rgb, (thumb_point_x, thumb_point_y), int(dist/2), (230, 210, 72), 2)
-
-      text_x = int(min(x_coordinates) * width)
-      text_y = int(min(y_coordinates) * height) - 10
-
-      cv2.putText(
-        frame_rgb,
-        handedness[0].category_name,
-        (text_x, text_y),
-        cv2.FONT_HERSHEY_DUPLEX,
-        FONT_SIZE,
-        (88, 205, 54),
-        FONT_THICKNESS,
-        cv2.LINE_AA
-      )
+      find_angles(frame_rgb, x_coordinates, y_coordinates)
 
   display_frame = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
   overlay = cv2.resize(overlay, (display_frame.shape[1], display_frame.shape[0]))
 
   # Display
   output = cv2.addWeighted(
-    display_frame, 0.0,
-    overlay, 1.0,
+    display_frame, 0.2,
+    overlay, 0.8,
     0
   )
 
