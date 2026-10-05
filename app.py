@@ -1,10 +1,7 @@
 import cv2
 import sys
-import numpy as np
 import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
-from helper import find_angles
+from helper import draw
 
 s = 0
 if len(sys.argv) > 1:
@@ -22,31 +19,34 @@ HANDEDNESS_TEXT_COLOR = (88, 205, 54)
 mp_hands = mp.tasks.vision.HandLandmarksConnections
 mp_drawing = mp.tasks.vision.drawing_utils
 mp_drawing_styles = mp.tasks.vision.drawing_styles
-HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
+
+GestureRecognizerResult = mp.tasks.vision.GestureRecognizerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
+GestureRecognizer = mp.tasks.vision.GestureRecognizer
+GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
+base_options = mp.tasks.BaseOptions(model_asset_path='gesture_recognizer.task')
 
 # This will contain the latest MediaPipe result
 latest_result = None
 
 def result_callback(
-  detection_result: HandLandmarkerResult,
+  detection_result: GestureRecognizerResult,
   output_image: mp.Image,
   timestamp_ms: int
 ):
   global latest_result
   latest_result = detection_result
 
-
-base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
-options = vision.HandLandmarkerOptions(
+options = GestureRecognizerOptions(
   base_options=base_options, 
   num_hands=2, 
   running_mode=VisionRunningMode.LIVE_STREAM,
   result_callback=result_callback
 )
-detector = vision.HandLandmarker.create_from_options(options)
+recognizer = GestureRecognizer.create_from_options(options)
 
 frame_timestamp_ms = 0
+is_open_palm = False
 overlay = cv2.imread("assets/overlay.png")
 
 while cv2.waitKey(1) != 27:
@@ -59,9 +59,19 @@ while cv2.waitKey(1) != 27:
   frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
   mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
-  detector.detect_async(mp_img, frame_timestamp_ms)
+  recognizer.recognize_async(mp_img, frame_timestamp_ms)
 
   if latest_result is not None:
+    for i, gesture in enumerate(latest_result.gestures):
+      if gesture[0].category_name == 'Open_Palm':
+        is_open_palm = True
+      else:
+        is_open_palm = False
+
+      if is_open_palm:
+        print('detected open palm ', frame_timestamp_ms)
+        draw(overlay)
+
     for idx, hand_landmarks in enumerate(latest_result.hand_landmarks):
       handedness = latest_result.handedness[idx]
 
@@ -76,8 +86,6 @@ while cv2.waitKey(1) != 27:
 
       x_coordinates = [landmark.x for landmark in hand_landmarks]
       y_coordinates = [landmark.y for landmark in hand_landmarks]
-
-      find_angles(frame_rgb, x_coordinates, y_coordinates)
 
   display_frame = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
   overlay = cv2.resize(overlay, (display_frame.shape[1], display_frame.shape[0]))
