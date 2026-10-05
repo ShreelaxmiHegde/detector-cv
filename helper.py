@@ -54,10 +54,10 @@ def draw(
   frame
 ):
   height, width, _ = frame.shape
-  pt1 = (random.randint(0, 255)*height-10, random.randint(0, 255)*width)
-  pt2 = (random.randint(0, 255)*height-10, random.randint(0, 255)*width)
-  print(pt1, pt2)
-  cv2.rectangle(frame, (20, 20), pt1, pt2, 2, cv2.LINE_AA)
+  pt1 = (random.randint(0, width), random.randint(0, height))
+  pt2 = (random.randint(0, width), random.randint(0, height))
+  color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+  cv2.rectangle(frame, pt1, pt2, color, 2, cv2.LINE_AA)
 
 def find_angles(frame, x_coordinates, y_coordinates):
   height, width, _ = frame.shape
