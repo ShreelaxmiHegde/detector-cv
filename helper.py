@@ -1,10 +1,28 @@
 import cv2
-import numpy as np
 import random
+import numpy as np
+from mediapipe.tasks.python import vision
 
 FONT_SIZE = 1
 FONT_THICKNESS = 1
 HANDEDNESS_TEXT_COLOR = (88, 205, 54)
+
+mp_hands = vision.HandLandmarksConnections
+mp_drawing = vision.drawing_utils
+mp_drawing_styles = vision.drawing_styles
+
+def draw_landmarks(frame, hand_landmarks):
+  for idx, hand_landmarks in enumerate(hand_landmarks):
+    mp_drawing.draw_landmarks(
+      frame,
+      hand_landmarks,
+      mp_hands.HAND_CONNECTIONS,
+      mp_drawing_styles.get_default_hand_landmarks_style(),
+      mp_drawing_styles.get_default_hand_connections_style()
+    )
+  
+    x_coordinates = [landmark.x for landmark in hand_landmarks]
+    y_coordinates = [landmark.y for landmark in hand_landmarks]
 
 def draw_shapes_tip_coordinates(
   frame,
@@ -50,9 +68,7 @@ def show_ref_hand_lines(
     cv2.LINE_AA
   )
 
-def draw(
-  frame
-):
+def draw(frame):
   height, width, _ = frame.shape
   pt1 = (random.randint(0, width), random.randint(0, height))
   pt2 = (random.randint(0, width), random.randint(0, height))
